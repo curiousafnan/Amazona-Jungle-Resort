@@ -6,28 +6,29 @@
   function smooth(){return reduceMotion&&reduceMotion.matches?"auto":"smooth";}
 
   /* ---------- currency ---------- */
-  var FX={EUR_PER:17600, USD_PER:16300};
-  var RATES={IDR:1, EUR:1/FX.EUR_PER, USD:1/FX.USD_PER};
+  /* prices are set in USD; IDR and EUR are fixed indicative rates */
+  var FX={IDR_PER_USD:16300, IDR_PER_EUR:17600};
+  var RATES={USD:1, IDR:FX.IDR_PER_USD, EUR:FX.IDR_PER_USD/FX.IDR_PER_EUR};
   var SYM={IDR:"IDR ", EUR:"€", USD:"$"};
-  var CCY="IDR";
-  try{var s=localStorage.getItem("amz_ccy"); if(s&&RATES[s]) CCY=s;}catch(e){}
+  var CCY="USD";
+  try{var s=localStorage.getItem("amz_ccy_v2"); if(s&&RATES[s]) CCY=s;}catch(e){}
   /* F17: convert once, round once, then do all maths in the display currency */
-  function conv(idr){return Math.round((+idr||0)*RATES[CCY]);}
+  function conv(usd){return Math.round((+usd||0)*RATES[CCY]);}
   function fmtD(v){return CCY==="IDR"?"IDR "+v.toLocaleString("id-ID"):SYM[CCY]+v.toLocaleString("en-US");}
-  function fmt(idr){return fmtD(conv(idr));}
+  function fmt(usd){return fmtD(conv(usd));}
   window.fmtMoney=fmt; window.amzConv=conv; window.amzFmtD=fmtD;
   function apply(){
-    document.querySelectorAll(".ccy").forEach(function(t){t.textContent=fmt(t.getAttribute("data-idr"));});
+    document.querySelectorAll(".ccy").forEach(function(t){t.textContent=fmt(t.getAttribute("data-usd"));});
     document.querySelectorAll("select[data-prices] option").forEach(function(o){var p=o.getAttribute("data-price");
       if(p) o.textContent=o.getAttribute("data-name")+" · from "+fmt(p)+" / night";});
     document.querySelectorAll(".curSel").forEach(function(c){c.value=CCY;});
     document.dispatchEvent(new Event("ccychange"));
   }
   document.addEventListener("change",function(e){if(e.target.classList&&e.target.classList.contains("curSel")){
-    CCY=e.target.value; try{localStorage.setItem("amz_ccy",CCY);}catch(x){} apply();}});
+    CCY=e.target.value; try{localStorage.setItem("amz_ccy_v2",CCY);}catch(x){} apply();}});
 
   /* long-stay discount tiers */
-  function tier(n){return n>=30?20:n>=14?15:n>=7?10:n>=5?5:0;}
+  function tier(n){return n>=30?26:n>=14?16:n>=10?11:n>=7?10:0;}
   window.amzTier=tier;
 
   /* ---------- dialogs: focus in, trap Tab, Esc, focus back (F6) ---------- */
@@ -281,7 +282,7 @@
             '<div class="srow"><span>Rate / night</span><span>'+fmtD(nr)+'</span></div>')+
         (ok&&pct?'<div class="srow disc"><span>'+nn+'-night rate, '+pct+'% off</span><span>– '+fmtD(disc)+'</span></div>':'')+
         '<div class="srow total"><span>Estimated total</span><span>'+(ok?fmtD(tot):"–")+'</span></div>'+
-        (CCY!=="IDR"?'<p class="bs-note">Shown in '+CCY+' at a fixed indicative rate. Billing is in IDR.</p>':'');
+        (CCY!=="USD"?'<p class="bs-note">Shown in '+CCY+' at a fixed indicative rate. Rates are set in USD.</p>':'');
       document.querySelectorAll(".bsum").forEach(function(s){
         var d=s.querySelector("details.bsd");
         if(!d){s.innerHTML='<details class="bsd"><summary><span class="bsd-line"></span><span class="bsd-t" aria-hidden="true"></span></summary><div class="bsd-b"></div></details>';
