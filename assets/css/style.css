@@ -674,7 +674,7 @@ footer li a:hover{color:var(--ivory)}
   .rgrid3{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;padding-bottom:6px;scrollbar-width:none}
   .rgrid3::-webkit-scrollbar{display:none}
   .rgrid3>.rescard{flex:0 0 82%;scroll-snap-align:start}
-  .rgrid3 .rthumbs,.rgrid3 .rhl,.rgrid3 .rinc-h,.rgrid3 .rinc,.rgrid3 .rdesc{display:none}
+  .rgrid3 .rthumbs,.rgrid3 .rhl,.rgrid3 .rinc-h,.rgrid3 .rinc,.rgrid3 .rfac,.rgrid3 .rdesc{display:none}
   .rgrid3 .rmain{height:200px}
   .rgrid3 .rescard .rb{padding:20px 20px 22px}
 }
@@ -766,4 +766,20 @@ footer li:not(:has(a)){padding:10px 0}
 }
 /* floating WhatsApp button keeps an edge on the green quote band */
 .wa{border:1px solid rgba(241,240,235,.4)}
+/* ===== Client round (31 Oct): centred property cards, facilities rows, one residences grid ===== */
+.rescard .rb{text-align:center}
+.rescard .rhead,.rescard .rdesc,.rescard .rhl{text-align:center}
+.rescard .rfac{border-top:1px solid rgba(35,32,26,.12);padding:14px 0 0;margin:0 0 14px}
+.rescard .rfac + .rfac{padding-top:12px}
+.rescard .rfac-h{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
+.rescard .rfac p{font-size:12.5px;line-height:1.75;color:rgba(35,32,26,.74)}
+.rescard .rfac .dot{color:var(--green);margin:0 2px}
+.rescard .price,.rescard .price{text-align:center}
+.rescard .pline,.rescard .rrate{justify-content:center}
+@media(max-width:440px){.rescard .price{text-align:center}}
+/* residences page: same card, same width as the home slider (3 per row, 24px gap), last row centred */
+.rall-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.rall-grid>.rescard{flex:0 0 calc((100% - 48px)/3);min-width:0}
+@media(min-width:861px) and (max-width:1199.98px){.rall-grid>.rescard{flex-basis:calc((100% - 24px)/2)}}
+@media(max-width:860px){.rall-grid>.rescard{flex-basis:100%;max-width:520px}}
 .lb .lbp,.lb .lbn{top:50%;transform:translateY(-50%)}.lb .lbp{left:18px;right:auto}.lb .lbn{right:18px}.lb .lbc{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(241,240,235,.7);font-size:11px;letter-spacing:.2em}
