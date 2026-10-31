@@ -21,7 +21,7 @@
     document.querySelectorAll(".ccy").forEach(function(t){t.textContent=fmt(t.getAttribute("data-usd"));});
     document.querySelectorAll("select[data-prices] option").forEach(function(o){var p=o.getAttribute("data-price");
       if(p) o.textContent=o.getAttribute("data-name")+" · from "+fmt(p)+" / night";});
-    document.querySelectorAll(".curSel").forEach(function(c){c.value=CCY;});
+    document.querySelectorAll(".curSel").forEach(function(c){c.value=CCY;c.dispatchEvent(new Event("input"));});
     document.dispatchEvent(new Event("ccychange"));
   }
   document.addEventListener("change",function(e){if(e.target.classList&&e.target.classList.contains("curSel")){
@@ -263,7 +263,7 @@
     function setGuests(max,want){
       var v=Math.min(Math.max(+want||+gs.value||2,1),max); gs.innerHTML="";
       for(var i=1;i<=max;i++){var o=document.createElement("option"); o.value=i; o.textContent=i+" Guest"+(i>1?"s":""); gs.appendChild(o);}
-      gs.value=String(v);
+      gs.value=String(v); gs.dispatchEvent(new Event("input"));
       var h=$("guestHint"); if(h) h.textContent=!state.name?"":state.name+" sleeps up to "+max+" guest"+(max>1?"s":"")+". Larger groups can book more than one residence.";
     }
 
@@ -333,8 +333,63 @@
     amzBookingPrefill();
   }
 
+
+  /* ---------- custom dropdowns: the native list highlights options in the OS blue, so every <select>
+     gets an on-brand listbox. The native select stays the source of truth (forms, tests, a11y). ---------- */
+  var openX=null;
+  function closeX(focusBtn){if(!openX)return;var o=openX;openX=null;o.list.hidden=true;o.btn.setAttribute("aria-expanded","false");o.wrap.classList.remove("open");if(focusBtn)o.btn.focus();}
+  function enhanceSelects(){
+    document.querySelectorAll("select:not([data-x])").forEach(function(sel,k){
+      sel.setAttribute("data-x","1");
+      var wrap=document.createElement("div"); wrap.className="xsel";
+      sel.parentNode.insertBefore(wrap,sel); wrap.appendChild(sel);
+      sel.classList.add("xsel-native"); sel.tabIndex=-1; sel.setAttribute("aria-hidden","true");
+      var bid=(sel.id||("xs"+k))+"-btn", lid=(sel.id||("xs"+k))+"-list";
+      var btn=document.createElement("button"); btn.type="button"; btn.className="xsel-btn"; btn.id=bid;
+      btn.setAttribute("aria-haspopup","listbox"); btn.setAttribute("aria-expanded","false"); btn.setAttribute("aria-controls",lid);
+      var lab=sel.id&&document.querySelector('label[for="'+sel.id+'"]');
+      if(lab){lab.htmlFor=bid;} else if(sel.getAttribute("aria-label")) btn.setAttribute("aria-label",sel.getAttribute("aria-label"));
+      if(sel.getAttribute("aria-describedby")) btn.setAttribute("aria-describedby",sel.getAttribute("aria-describedby"));
+      var val=document.createElement("span"); val.className="xsel-val"; btn.appendChild(val);
+      var list=document.createElement("ul"); list.className="xsel-list"; list.id=lid; list.setAttribute("role","listbox"); list.tabIndex=-1; list.hidden=true;
+      wrap.appendChild(btn); wrap.appendChild(list);
+      var o={sel:sel,btn:btn,list:list,wrap:wrap,act:0};
+      function label(){var op=sel.options[sel.selectedIndex]; val.textContent=op?op.text:"";}
+      function build(){list.innerHTML="";
+        [].forEach.call(sel.options,function(op,i){var li=document.createElement("li"); li.id=lid+"-"+i; li.setAttribute("role","option");
+          li.textContent=op.text; li.setAttribute("aria-selected",i===sel.selectedIndex?"true":"false"); li.dataset.i=i;
+          li.addEventListener("mousedown",function(e){e.preventDefault();});
+          li.addEventListener("click",function(){choose(i);});
+          li.addEventListener("mousemove",function(){mark(i);});
+          list.appendChild(li);});}
+      function mark(i){o.act=i;[].forEach.call(list.children,function(li,j){li.classList.toggle("act",j===i);});
+        var li=list.children[i]; if(li){list.setAttribute("aria-activedescendant",li.id); var t=li.offsetTop,b=t+li.offsetHeight;
+          if(t<list.scrollTop)list.scrollTop=t; else if(b>list.scrollTop+list.clientHeight)list.scrollTop=b-list.clientHeight;}}
+      function open(){if(openX&&openX!==o)closeX(false); build(); list.hidden=false; wrap.classList.add("open"); btn.setAttribute("aria-expanded","true");
+        openX=o; mark(Math.max(0,sel.selectedIndex)); list.focus({preventScroll:true});}
+      function choose(i){var changed=sel.selectedIndex!==i; sel.selectedIndex=i; label(); closeX(true);
+        if(changed){sel.dispatchEvent(new Event("input",{bubbles:true})); sel.dispatchEvent(new Event("change",{bubbles:true}));}}
+      btn.addEventListener("click",function(){if(openX===o)closeX(true); else open();});
+      btn.addEventListener("keydown",function(e){if(["ArrowDown","ArrowUp","Enter"," "].indexOf(e.key)>=0){e.preventDefault();open();}});
+      list.addEventListener("keydown",function(e){var n=sel.options.length;
+        if(e.key==="ArrowDown"){e.preventDefault();mark(Math.min(n-1,o.act+1));}
+        else if(e.key==="ArrowUp"){e.preventDefault();mark(Math.max(0,o.act-1));}
+        else if(e.key==="Home"){e.preventDefault();mark(0);} else if(e.key==="End"){e.preventDefault();mark(n-1);}
+        else if(e.key==="Enter"||e.key===" "){e.preventDefault();choose(o.act);}
+        else if(e.key==="Escape"){e.preventDefault();e.stopPropagation();closeX(true);}
+        else if(e.key==="Tab"){closeX(false);}
+        else if(e.key.length===1){var c=e.key.toLowerCase();for(var j=1;j<=n;j++){var q=(o.act+j)%n;if(sel.options[q].text.toLowerCase().charAt(0)===c){mark(q);break;}}}});
+      list.addEventListener("blur",function(){setTimeout(function(){if(openX===o&&!wrap.contains(document.activeElement))closeX(false);},0);});
+      sel.addEventListener("change",label); sel.addEventListener("input",label);
+      document.addEventListener("ccychange",label);
+      if(window.MutationObserver) new MutationObserver(function(){label(); if(openX===o)build(),mark(o.act);}).observe(sel,{childList:true,subtree:true,characterData:true});
+      label();
+    });
+  }
+  window.amzSelRefresh=function(){document.querySelectorAll(".xsel .xsel-native").forEach(function(s){s.dispatchEvent(new Event("input"));});};
+  document.addEventListener("mousedown",function(e){if(openX&&!openX.wrap.contains(e.target))closeX(false);});
   document.addEventListener("DOMContentLoaded",function(){
-    apply(); counter("resTrack","resCount"); counter("resTrack2","resCount2"); counter("facTrack","facCount");
+    enhanceSelects(); apply(); counter("resTrack","resCount"); counter("resTrack2","resCount2"); counter("facTrack","facCount");
     galA11y(); resGallery(); calc(); booking(); mbar(); mapFallback();
   });
 })();

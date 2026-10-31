@@ -789,4 +789,30 @@ footer li:not(:has(a)){padding:10px 0}
 .rescard .rfl li{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.4;color:rgba(35,32,26,.78)}
 .rescard .ric{width:16px;height:16px;flex:0 0 16px;margin-top:1px;fill:none;stroke:var(--green);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:360px){.rescard .rfl{grid-template-columns:1fr}}
+/* ===== custom dropdowns (no OS blue highlight) ===== */
+.xsel{position:relative;width:100%}
+.cursel .xsel{width:auto}
+.xsel-native{position:absolute!important;left:0;bottom:0;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;border:0!important;opacity:0;pointer-events:none;overflow:hidden}
+.xsel-btn{display:flex;align-items:center;width:100%;text-align:left;cursor:pointer;font-family:var(--sans);color:var(--ink);white-space:nowrap}
+.xsel-val{overflow:hidden;text-overflow:ellipsis}
+.field .xsel-btn{min-height:46px;font-size:15px;font-weight:300;background-color:var(--ivory);border:1px solid rgba(35,32,26,.28);border-radius:3px;padding:12px 40px 12px 14px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%232F3B31' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.bookwrap .field .xsel-btn{background-color:var(--off)}
+.calcform .xsel-btn{background-color:var(--ivory);border-color:rgba(35,32,26,.24)}
+.field .xsel-btn:hover{border-color:var(--green)}
+.field .xsel.open .xsel-btn{border-color:var(--green)}
+.field.err .xsel-btn{border:1.5px solid var(--ink);box-shadow:inset 3px 0 0 var(--green)}
+.cursel .xsel-btn{background:transparent;border:1px solid rgba(35,32,26,.35);border-radius:2px;font-size:11px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;padding:12px 32px 12px 15px;line-height:1;width:auto;min-width:84px}
+.cursel .xsel-btn:hover{border-color:var(--green)}
+.navr .cursel .xsel-btn{height:40px;padding-top:0;padding-bottom:0}
+.mfoot .cursel .xsel-btn{color:var(--ivory);border-color:rgba(241,240,235,.4)}
+.xsel-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.xsel-list{position:absolute;top:calc(100% + 4px);left:0;min-width:100%;z-index:80;margin:0;padding:6px 0;list-style:none;background:var(--off);
+  border:1px solid rgba(35,32,26,.18);border-radius:4px;box-shadow:0 14px 34px rgba(27,24,19,.16);max-height:300px;overflow:auto;outline:none}
+.xsel-list li{padding:11px 16px;font-family:var(--sans);font-size:14px;font-weight:300;color:var(--ink);cursor:pointer;white-space:nowrap}
+.cursel .xsel-list li{font-size:11px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;padding:10px 15px}
+.xsel-list li.act{background:rgba(47,59,49,.08)}
+.xsel-list li[aria-selected="true"]{background:var(--green);color:var(--ivory)}
+.xsel-list li[aria-selected="true"].act{background:var(--ink)}
+.mfoot .cursel .xsel-list{top:auto;bottom:calc(100% + 4px)}
 .lb .lbp,.lb .lbn{top:50%;transform:translateY(-50%)}.lb .lbp{left:18px;right:auto}.lb .lbn{right:18px}.lb .lbc{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(241,240,235,.7);font-size:11px;letter-spacing:.2em}
