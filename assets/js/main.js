@@ -333,7 +333,7 @@
   }
 
   document.addEventListener("DOMContentLoaded",function(){
-    apply(); counter("resTrack","resCount"); counter("facTrack","facCount");
+    apply(); counter("resTrack","resCount"); counter("resTrack2","resCount2"); counter("facTrack","facCount");
     galA11y(); resGallery(); calc(); booking(); mbar(); mapFallback();
   });
 })();

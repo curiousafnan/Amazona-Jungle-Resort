@@ -782,4 +782,11 @@ footer li:not(:has(a)){padding:10px 0}
 .rall-grid>.rescard{flex:0 0 calc((100% - 48px)/3);min-width:0}
 @media(min-width:861px) and (max-width:1199.98px){.rall-grid>.rescard{flex-basis:calc((100% - 24px)/2)}}
 @media(max-width:860px){.rall-grid>.rescard{flex-basis:100%;max-width:520px}}
+/* facilities lists: left aligned, two columns, line icons */
+.rescard .rfac{text-align:left}
+.rescard .rfac-h{text-align:left;margin-bottom:10px}
+.rescard .rfl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.rescard .rfl li{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.4;color:rgba(35,32,26,.78)}
+.rescard .ric{width:16px;height:16px;flex:0 0 16px;margin-top:1px;fill:none;stroke:var(--green);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:360px){.rescard .rfl{grid-template-columns:1fr}}
 .lb .lbp,.lb .lbn{top:50%;transform:translateY(-50%)}.lb .lbp{left:18px;right:auto}.lb .lbn{right:18px}.lb .lbc{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(241,240,235,.7);font-size:11px;letter-spacing:.2em}
