@@ -70,7 +70,10 @@ nav{position:sticky;top:0;left:0;right:0;z-index:100;background:var(--ivory);bor
 /* hero */
 .hero{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--ink);padding:104px 24px 92px;overflow:hidden}
 .hero.short{min-height:52vh;background:radial-gradient(120% 90% at 50% 0%,var(--off),var(--ivory))}
-.hero.home{min-height:90vh;color:var(--ivory);background-image:linear-gradient(180deg,rgba(27,24,19,.40),rgba(27,24,19,.72)),url('../img/00.jpg');background-size:cover;background-position:center}
+.hero.home{min-height:90vh;color:var(--ivory);background-color:var(--inkd);background-image:url('../img/00.webp');background-size:cover;background-position:center}
+/* dark overlay: an even ink wash, deeper behind the headline and at the bottom edge */
+.hero.home::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(70% 60% at 50% 48%,rgba(27,24,19,.38),rgba(27,24,19,0) 72%),linear-gradient(180deg,rgba(27,24,19,.55) 0%,rgba(27,24,19,.45) 40%,rgba(27,24,19,.62) 75%,rgba(27,24,19,.85) 100%)}
+.hero.home>*{position:relative;z-index:2}
 .hero .eyebrow{color:var(--green);margin-bottom:18px;position:relative;z-index:2}
 .hero.home .eyebrow{color:var(--onDarkStrong)}
 .hero h1{font-size:clamp(40px,6.2vw,82px);line-height:1.04;color:var(--ink);max-width:17ch;position:relative;z-index:2}

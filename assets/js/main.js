@@ -1,6 +1,20 @@
 /* Amazona Jungle Resort · shared site script (multi-page site and single-file bundle) */
 (function(){
   function $(id){return document.getElementById(id);}
+
+  /* ---------- lazy photos: [data-bg] gets its background when it comes within ~800px of the viewport ---------- */
+  (function(){
+    function show(el){var u=el.getAttribute("data-bg"); if(!u) return; el.style.backgroundImage=/^var\(/.test(u)?u:"url('"+u+"')"; el.removeAttribute("data-bg");}
+    window.amzShowAll=function(){[].slice.call(document.querySelectorAll("[data-bg]")).forEach(show);};
+    var els=[].slice.call(document.querySelectorAll("[data-bg]"));
+    if(!("IntersectionObserver" in window)){els.forEach(show);return;}
+    /* photos inside a horizontal slider all load once the slider nears the viewport, so slides are ready before they are swiped in */
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting) return; var t=e.target;
+      if(t.matches(".sltrack,.expgrid,.rgrid3,.cgrid.cats")) [].slice.call(t.querySelectorAll("[data-bg]")).forEach(show); else show(t); io.unobserve(t);});},{rootMargin:"800px 800px"});
+    var tracks=[];
+    els.forEach(function(el){var t=el.closest&&el.closest(".sltrack,.expgrid,.rgrid3,.cgrid.cats"); if(t){if(tracks.indexOf(t)<0){tracks.push(t);io.observe(t);}} else io.observe(el);});
+    window.addEventListener("beforeprint",window.amzShowAll);
+  })();
   function pad(n){return (n<10?"0":"")+n;}
   var reduceMotion=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)");
   function smooth(){return reduceMotion&&reduceMotion.matches?"auto":"smooth";}
@@ -87,7 +101,7 @@
     box.classList.remove("on"); document.body.style.overflow=""; setInert(false); openDialog=null;
     var o=LB.opener; LB.opener=null; if(o&&o.focus&&document.contains(o)&&visible(o)) o.focus({preventScroll:true});};
   window.lbStep=function(d){if(!LB.list.length)return;LB.i=(LB.i+d+LB.list.length)%LB.list.length;lbShow();};
-  function bgUrl(el){var m=getComputedStyle(el).backgroundImage.match(/url\(["']?([^"')]+)["']?\)/);return m?m[1]:null;}
+  function bgUrl(el){var d=el.getAttribute("data-bg"); if(d) return d; var m=getComputedStyle(el).backgroundImage.match(/url\(["']?([^"')]+)["']?\)/);return m?m[1]:null;}
   function openGal(g){
     var cells=[].slice.call(g.parentNode.querySelectorAll(".ph"));
     var list=cells.map(function(c){return {src:bgUrl(c),w:+c.getAttribute("data-w")||0,h:+c.getAttribute("data-h")||0,alt:c.getAttribute("data-alt")||""};});
