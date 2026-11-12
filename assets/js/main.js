@@ -2,6 +2,9 @@
 (function(){
   function $(id){return document.getElementById(id);}
 
+  /* ---------- reservations: closed until the body's data-open time, then the booking flow comes back by itself ---------- */
+  (function(){var b=document.body,o=b&&b.getAttribute("data-open"); if(o&&Date.now()>=Date.parse(o)) b.classList.remove("res-closed");})();
+
   /* ---------- lazy photos: [data-bg] gets its background when it comes within ~800px of the viewport ---------- */
   (function(){
     function show(el){var u=el.getAttribute("data-bg"); if(!u) return; el.style.backgroundImage=/^var\(/.test(u)?u:"url('"+u+"')"; el.removeAttribute("data-bg");}

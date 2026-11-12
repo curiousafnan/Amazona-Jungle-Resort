@@ -818,4 +818,22 @@ footer li:not(:has(a)){padding:10px 0}
 .xsel-list li[aria-selected="true"]{background:var(--green);color:var(--ivory)}
 .xsel-list li[aria-selected="true"].act{background:var(--ink)}
 .mfoot .cursel .xsel-list{top:auto;bottom:calc(100% + 4px)}
+
+/* hero subtitle: the line break after "jungle." is for wide screens; on phones the text flows so "jungle." is not left alone on a line */
+@media(max-width:700px){.hero.home .sub br{display:none}}
+
+/* reservations closed: notices show while body.res-closed, the booking flow shows after opening */
+.res-closed .when-open{display:none!important}
+body:not(.res-closed) .when-closed{display:none!important}
+.resbar{background:var(--green);color:var(--ivory);font-size:13px;letter-spacing:.02em}
+.resbar-in{max-width:1320px;margin:0 auto;padding:10px 24px;display:flex;justify-content:center;align-items:center;gap:6px 18px;flex-wrap:wrap;text-align:center}
+.resbar b{font-weight:500}
+.resbar a{color:var(--ivory);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.resbar a:hover,.resbar a:focus-visible{text-decoration-thickness:2px}
+.bkclosed{padding-top:0}
+.bkclosed-in{max-width:720px;margin:0 auto;text-align:center;background:var(--off);border:1px solid rgba(35,32,26,.1);border-radius:8px;padding:48px 36px}
+.bkclosed-in h2{margin:10px 0 14px;font-size:clamp(30px,3.6vw,42px);line-height:1.15}
+.bkclosed-in p{margin:0 auto 26px;max-width:560px}
+.bkclosed-in .rowbtns{justify-content:center}
+@media(max-width:600px){.bkclosed-in{padding:36px 22px}.resbar-in{font-size:12.5px;padding:9px 16px}}
 .lb .lbp,.lb .lbn{top:50%;transform:translateY(-50%)}.lb .lbp{left:18px;right:auto}.lb .lbn{right:18px}.lb .lbc{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(241,240,235,.7);font-size:11px;letter-spacing:.2em}
