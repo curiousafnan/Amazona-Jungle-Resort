@@ -5,6 +5,30 @@
   /* ---------- reservations: closed until the body's data-open time, then the booking flow comes back by itself ---------- */
   (function(){var b=document.body,o=b&&b.getAttribute("data-open"); if(o&&Date.now()>=Date.parse(o)) b.classList.remove("res-closed");})();
 
+  /* ---------- lead capture: forms post to api/lead.php on our server, which forwards to Zapier -> GoHighLevel ---------- */
+  var T0=Date.now();
+  (function(){try{var q=new URLSearchParams(location.search),u={};
+    ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"].forEach(function(k){if(q.get(k))u[k]=q.get(k);});
+    if(Object.keys(u).length) sessionStorage.setItem("amz_utm",JSON.stringify(u));
+    if(sessionStorage.getItem("amz_ref")===null) sessionStorage.setItem("amz_ref",document.referrer||"direct");}catch(e){}})();
+  window.amzSend=function(fields){
+    var d=new URLSearchParams(), ep=document.body.getAttribute("data-endpoint");
+    function add(k,v){if(v!==undefined&&v!==null&&v!=="") d.append(k,String(v));}
+    Object.keys(fields).forEach(function(k){add(k,fields[k]);});
+    add("page_url",location.href.split("#")[0]); add("elapsed_ms",Date.now()-T0); add("display_currency",CCY);
+    try{add("timezone",Intl.DateTimeFormat().resolvedOptions().timeZone);}catch(e){}
+    try{var u=JSON.parse(sessionStorage.getItem("amz_utm")||"{}"); Object.keys(u).forEach(function(k){add(k,u[k]);}); add("referrer",sessionStorage.getItem("amz_ref"));}catch(e){}
+    if(!ep||!window.fetch) return Promise.reject(new Error("unavailable"));
+    return fetch(ep,{method:"POST",body:d,headers:{"Accept":"application/json"},credentials:"same-origin"})
+      .then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok||!j.ok){var e=new Error(j.message||("HTTP "+r.status)); e.errors=j.errors||{}; e.status=r.status; throw e;} return j;});});
+  };
+  /* when a send fails, offer the same details as a ready-made WhatsApp message */
+  function waLink(lines){var w=document.body.getAttribute("data-wa")||"https://wa.me/4593806513"; return w+"?text="+encodeURIComponent(lines.filter(Boolean).join("\n"));}
+  function failMsg(el,lines,e){
+    var why=e&&e.status===429?"You&rsquo;ve sent a few requests already. Please wait a few minutes and try again, or ":"Sorry, that didn&rsquo;t go through. Please try again, or ";
+    el.innerHTML=why+'<a href="'+waLink(lines).replace(/"/g,"&quot;")+'" target="_blank" rel="noopener">send it to us on WhatsApp</a>.';
+  }
+
   /* ---------- lazy photos: [data-bg] gets its background when it comes within ~800px of the viewport ---------- */
   (function(){
     function show(el){var u=el.getAttribute("data-bg"); if(!u) return; el.style.backgroundImage=/^var\(/.test(u)?u:"url('"+u+"')"; el.removeAttribute("data-bg");}
@@ -202,6 +226,7 @@
       else{$("cDiscRow").style.display="none"; $("cSave").style.visibility="hidden";}
       $("cTotal").textContent=fmtD(total);
       $("calcGo").setAttribute("href",(window.AMZ_SPA?"#booking?":"booking.html?")+"residence="+encodeURIComponent(res.value)+"&nights="+n);
+      if($("calcReg")) $("calcReg").setAttribute("href",(window.AMZ_SPA?"#booking:register?":"booking.html?")+"residence="+encodeURIComponent(res.value)+"&nights="+n+(window.AMZ_SPA?"":"#register"));
     }
     res.addEventListener("change",upd); len.addEventListener("change",upd); document.addEventListener("ccychange",upd); upd();
   }
@@ -318,9 +343,23 @@
       state.res=b.getAttribute("data-select"); state.price=+b.getAttribute("data-price"); state.name=b.getAttribute("data-name");
       state.type=b.getAttribute("data-type")||""; state.img=b.getAttribute("data-img")||""; state.max=+b.getAttribute("data-max")||5;
     }
+    var sending=false, sent=false;
     window.bkStep=function(n){
       if(n>=2&&!state.res){step(1,{focus:true});return;}
       if(n>=3&&!validate()){if(cur!==2){summary();step(2,{focus:false});validate();}return;}
+      if(n===4&&!sent){
+        if(sending) return;
+        var a0=parse(ci.value), nn=nights(), pct=tier(nn), ref="AMZ-"+String(a0.getFullYear()).slice(2)+pad(a0.getMonth()+1)+pad(a0.getDate())+"-"+(CODES[state.res]||"RES");
+        var pay0=(document.querySelector('input[name="pay"]:checked')||{}).value||"card", btn=$("bkConfirm"), pm=$("payMsg");
+        var data={form_type:"booking_request",first_name:$("fn").value.trim(),last_name:$("ln").value.trim(),email:$("em").value.trim(),phone:$("ph").value.trim(),
+          residence:state.name,residence_id:state.res,check_in:ci.value,check_out:co.value,nights:nn,guests:gs.value,rate_usd:state.price,
+          discount_pct:pct,total_usd:Math.round(state.price*nn*(100-pct)/100),payment_method:pay0,booking_ref:ref,message:$("rq").value.trim()};
+        sending=true; btn.disabled=true; btn.textContent="Sending..."; pm.textContent="";
+        amzSend(data).then(function(){sent=true; bkStep(4);}).catch(function(e){
+          failMsg(pm,["Hi Amazona, I'd like to book "+state.name+".","Dates: "+ci.value+" to "+co.value+" ("+nn+" nights), "+gs.value+" guests.","Name: "+data.first_name+" "+data.last_name,"Email: "+data.email,data.phone?"Phone: "+data.phone:"",data.message?"Notes: "+data.message:""],e);
+        }).then(function(){sending=false; btn.disabled=false; btn.textContent="Confirm reservation";});
+        return;
+      }
       if(n===4){
         $("doneName").textContent=$("fn").value.trim(); $("doneRes").textContent=state.name;
         var a=parse(ci.value); $("doneRef").textContent="AMZ-"+String(a.getFullYear()).slice(2)+pad(a.getMonth()+1)+pad(a.getDate())+"-"+(CODES[state.res]||"RES");
@@ -335,7 +374,8 @@
       select(b); setGuests(state.max,gs.value); bkStep(2);});});
 
     window.amzBookingPrefill=function(){
-      q=amzParams(); clearErr(); $("dateMsg").textContent="";
+      q=amzParams(); clearErr(); $("dateMsg").textContent=""; sent=false; if($("payMsg")) $("payMsg").textContent="";
+      if(window.amzLeadPrefill) amzLeadPrefill();
       document.querySelectorAll("#bp1 .rescard").forEach(function(c){c.classList.remove("sel");});
       state={res:null,price:0,name:"",type:"",img:"",max:5};
       var t=today(), nq=Math.max(1,parseInt(q.get("nights"),10)||7);
@@ -405,8 +445,51 @@
   }
   window.amzSelRefresh=function(){document.querySelectorAll(".xsel .xsel-native").forEach(function(s){s.dispatchEvent(new Event("input"));});};
   document.addEventListener("mousedown",function(e){if(openX&&!openX.wrap.contains(e.target))closeX(false);});
+  function leadForm(){
+    var f=$("leadForm"); if(!f) return;
+    var btn=$("leadBtn"), msg=$("leadMsg"), lci=$("lci"), lco=$("lco");
+    function mark(id,t){var el=$(id),fl=el.closest(".field"),p=$("err-"+id); fl.classList.add("err"); el.setAttribute("aria-invalid","true");
+      if(p){p.textContent=t; p.hidden=false; el.setAttribute("aria-describedby","err-"+id);}}
+    function clear(id){var el=$(id); if(!el) return; el.closest(".field").classList.remove("err"); el.removeAttribute("aria-invalid"); el.removeAttribute("aria-describedby");
+      var p=$("err-"+id); if(p){p.hidden=true; p.textContent="";}}
+    ["lfn","lem","lph","lco"].forEach(function(id){$(id).addEventListener("input",function(){clear(id);});});
+    var t=new Date(); t.setHours(0,0,0,0); function ymd2(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+    lci.min=ymd2(t); lco.min=lci.min;
+    lci.addEventListener("change",function(){if(!lci.value) return; var d=new Date(lci.value+"T00:00:00"); d.setDate(d.getDate()+1); lco.min=ymd2(d);
+      if(lco.value&&lco.value<=lci.value) lco.value=""; clear("lco");});
+    function done(name){$("leadName").textContent=name; if(!name) $("leadDone").querySelector("h3").textContent="Thank you."; f.hidden=true; var d=$("leadDone"); d.hidden=false; d.focus({preventScroll:true});
+      var r=d.getBoundingClientRect(); if(r.top<90||r.top>innerHeight-120) scrollTo({top:r.top+scrollY-120,behavior:"auto"});}
+    f.addEventListener("submit",function(ev){
+      ev.preventDefault(); ["lfn","lem","lph","lco"].forEach(clear); msg.textContent="";
+      var v=function(n){return (f.elements[n].value||"").trim();}, errs=[];
+      if(!v("first_name")) errs.push(["lfn","Please add your first name."]);
+      if(!v("email")) errs.push(["lem","Please add your email so we can reach you."]);
+      else if(!$("lem").checkValidity()) errs.push(["lem","Please check the email address, for example name@example.com."]);
+      if(v("phone")&&(v("phone").match(/\d/g)||[]).length<7) errs.push(["lph","Please check the number, including the country code."]);
+      if(lci.value&&lco.value&&lco.value<=lci.value) errs.push(["lco","Departure must be after arrival."]);
+      if(errs.length){errs.forEach(function(x){mark(x[0],x[1]);}); msg.textContent=errs.length===1?errs[0][1]:"Please check the "+errs.length+" highlighted fields.";
+        $(errs[0][0]).focus(); return;}
+      var sel=$("lres"), nights=(lci.value&&lco.value)?Math.round((new Date(lco.value)-new Date(lci.value))/864e5):"";
+      var data={form_type:"register_interest",first_name:v("first_name"),last_name:v("last_name"),email:v("email"),phone:v("phone"),
+        residence_id:sel.value,residence:sel.value?sel.options[sel.selectedIndex].text:"",guests:v("guests"),check_in:lci.value,check_out:lco.value,nights:nights,
+        message:v("message"),marketing_opt_in:f.elements.marketing_opt_in.checked?"yes":"no",company_website:v("company_website")};
+      btn.disabled=true; btn.textContent="Sending...";
+      amzSend(data).then(function(){done(data.first_name);}).catch(function(e){
+        if(e&&e.errors){var map={first_name:"lfn",email:"lem",phone:"lph",check_out:"lco"}; Object.keys(e.errors).forEach(function(k){if(map[k]) mark(map[k],e.errors[k]);});}
+        failMsg(msg,["Hi Amazona, please let me know when reservations open.","Name: "+data.first_name+" "+data.last_name,"Email: "+data.email,
+          data.phone?"Phone: "+data.phone:"",data.residence?"Residence: "+data.residence:"",data.check_in?"Dates: "+data.check_in+(data.check_out?" to "+data.check_out:""):"",
+          "Guests: "+data.guests,data.message?"Notes: "+data.message:""],e);
+      }).then(function(){btn.disabled=false; btn.textContent="Register my interest";});
+    });
+    /* residence and nights from the link (home calculator, residence pages) */
+    window.amzLeadPrefill=function(){var q=amzParams(), r=q.get("residence"), sel=$("lres");
+      if(r&&sel.querySelector('option[value="'+r.replace(/[^a-z-]/g,"")+'"]')){sel.value=r; sel.dispatchEvent(new Event("change"));}
+      if(q.get("lead")==="ok") done("");};
+    amzLeadPrefill();
+  }
+
   document.addEventListener("DOMContentLoaded",function(){
     enhanceSelects(); apply(); counter("resTrack","resCount"); counter("resTrack2","resCount2"); counter("facTrack","facCount");
-    galA11y(); resGallery(); calc(); booking(); mbar(); mapFallback();
+    galA11y(); resGallery(); calc(); leadForm(); booking(); mbar(); mapFallback();
   });
 })();
