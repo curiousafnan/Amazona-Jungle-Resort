@@ -866,4 +866,44 @@ footer h2.fh,.cblock h2.ch{font-family:inherit;line-height:inherit}
 #payMsg{margin-top:14px}
 #payMsg a{color:inherit;text-decoration:underline}
 @media(max-width:600px){.lead .frow{grid-template-columns:1fr;gap:0}}
+
+/* custom date picker (replaces the browser's blue calendar) */
+.xdate{position:relative;width:100%}
+.xdate-native{position:absolute!important;left:0;bottom:0;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;border:0!important;opacity:0;pointer-events:none;overflow:hidden}
+.xdate-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;text-align:left;cursor:pointer;
+  font-family:var(--sans);font-size:15px;font-weight:300;color:var(--ink);background:var(--ivory);border:1px solid rgba(35,32,26,.28);border-radius:3px;padding:12px 14px}
+.bookwrap .xdate-btn{background:var(--off)}
+.xdate-btn.empty .xdate-val{color:rgba(35,32,26,.7)}
+.xdate-btn svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--green);stroke-width:1.5;stroke-linecap:round}
+.xdate-btn:hover,.xdate.open .xdate-btn{border-color:var(--green)}
+.xdate-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.field.err .xdate-btn{border:1.5px solid var(--ink);box-shadow:inset 3px 0 0 var(--green)}
+.xdate-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:90;width:304px;max-width:calc(100vw - 32px);background:var(--off);
+  border:1px solid rgba(35,32,26,.18);border-radius:6px;box-shadow:0 18px 40px rgba(27,24,19,.18);padding:14px 14px 10px}
+.xdate.up .xdate-pop{top:auto;bottom:calc(100% + 6px)}
+.xdate-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.xdate-title{font-family:var(--serif);font-size:20px;color:var(--ink);letter-spacing:.01em}
+.xdate-nav{width:34px;height:34px;border-radius:50%;border:1px solid rgba(35,32,26,.16);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--green)}
+.xdate-nav svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.xdate-nav:hover:not([disabled]){background:var(--green);color:var(--ivory);border-color:var(--green)}
+.xdate-nav[disabled]{opacity:.3;cursor:default}
+.xdate-grid{width:100%;border-collapse:collapse;table-layout:fixed}
+.xdate-grid th{font-family:var(--sans);font-size:10.5px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:rgba(35,32,26,.7);padding:6px 0 8px;text-align:center}
+.xdate-grid td{padding:1px;text-align:center}
+.xd{width:100%;aspect-ratio:1;max-height:38px;border:0;border-radius:50%;background:transparent;font-family:var(--sans);font-size:13.5px;font-weight:300;color:var(--ink);cursor:pointer}
+.xd:hover:not(.dis):not(.sel){background:rgba(47,59,49,.1)}
+.xd.out{visibility:hidden}
+.xd.today{box-shadow:inset 0 0 0 1px var(--green);font-weight:500}
+.xd.inr{background:rgba(47,59,49,.1);border-radius:0}
+.xd.rs,.xd.re{background:rgba(47,59,49,.22);color:var(--ink)}
+.xd.sel{background:var(--green);color:var(--ivory);font-weight:500}
+/* disabled days are inactive controls (WCAG 1.4.3 exempt) */
+.xd.dis{color:rgba(35,32,26,.3);cursor:default}
+.xd.dis.rs{color:var(--green);font-weight:500}
+.xd.dis:hover{background:transparent}
+.xd.dis.rs:hover{background:rgba(47,59,49,.22)}
+.xd:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+.xdate-foot{display:flex;justify-content:space-between;border-top:1px solid rgba(35,32,26,.1);margin-top:8px;padding-top:8px}
+.xdate-link{background:none;border:0;cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);padding:6px 4px}
+.xdate-link:hover{text-decoration:underline;text-underline-offset:3px}
 .lb .lbp,.lb .lbn{top:50%;transform:translateY(-50%)}.lb .lbp{left:18px;right:auto}.lb .lbn{right:18px}.lb .lbc{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(241,240,235,.7);font-size:11px;letter-spacing:.2em}

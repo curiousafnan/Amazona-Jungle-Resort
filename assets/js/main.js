@@ -395,6 +395,106 @@
      gets an on-brand listbox. The native select stays the source of truth (forms, tests, a11y). ---------- */
   var openX=null;
   function closeX(focusBtn){if(!openX)return;var o=openX;openX=null;o.list.hidden=true;o.btn.setAttribute("aria-expanded","false");o.wrap.classList.remove("open");if(focusBtn)o.btn.focus();}
+  /* ---------- custom date picker: replaces the browser's blue calendar with an on-brand one.
+     The real <input type="date"> stays in the page (invisible) as the source of truth, so forms, validation and scripts work unchanged. ---------- */
+  function enhanceDates(){
+    var MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var DOW=["Mo","Tu","We","Th","Fr","Sa","Su"], DOWL=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    var desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
+    function iso(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+    function parseD(v){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||""); return m?new Date(+m[1],+m[2]-1,+m[3]):null;}
+    function nice(d){return d.getDate()+" "+MON[d.getMonth()].slice(0,3)+" "+d.getFullYear();}
+    var pairs={lci:"lco",checkin:"checkout"}, back={lco:"lci",checkout:"checkin"}, openOne=null;
+    document.querySelectorAll('input[type="date"]:not([data-x])').forEach(function(inp){
+      inp.setAttribute("data-x","1");
+      var wrap=document.createElement("div"); wrap.className="xdate";
+      inp.parentNode.insertBefore(wrap,inp); wrap.appendChild(inp);
+      inp.classList.add("xdate-native"); inp.tabIndex=-1; inp.setAttribute("aria-hidden","true");
+      var lab=document.querySelector('label[for="'+inp.id+'"]');
+      var btn=document.createElement("button"); btn.type="button"; btn.className="xdate-btn"; btn.id=inp.id+"-btn";
+      btn.setAttribute("aria-haspopup","dialog"); btn.setAttribute("aria-expanded","false");
+      if(lab){lab.id=lab.id||inp.id+"-lab"; lab.setAttribute("for",btn.id);}
+      btn.innerHTML='<span class="xdate-val"></span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+      wrap.appendChild(btn);
+      var pop=document.createElement("div"); pop.className="xdate-pop"; pop.hidden=true; pop.setAttribute("role","dialog");
+      pop.setAttribute("aria-label",(lab?lab.textContent.replace(/\(optional\)/,"").trim():"Date")+": choose a date");
+      wrap.appendChild(pop);
+      var view=null, focusD=null;
+      function label(){var d=parseD(desc.get.call(inp)), v=btn.firstChild;
+        v.textContent=d?nice(d):"Select a date"; btn.classList.toggle("empty",!d);
+        btn.setAttribute("aria-label",(lab?lab.textContent.replace(/\(optional\)/,"").trim():"Date")+", "+(d?DOWL[(d.getDay()+6)%7]+" "+nice(d):"no date selected"));}
+      /* scripts that set inp.value directly also refresh the label */
+      Object.defineProperty(inp,"value",{configurable:true,get:function(){return desc.get.call(inp);},set:function(v){desc.set.call(inp,v); label();}});
+      inp.addEventListener("change",label); inp.addEventListener("input",label);
+      inp.addEventListener("focus",function(){btn.focus();});
+      function lim(a){var d=parseD(inp.getAttribute(a)); return d;}
+      function ok(d){var mn=lim("min"), mx=lim("max"); return !(mn&&d<mn)&&!(mx&&d>mx);}
+      function rangeEnds(){var a=null,b=null;
+        if(pairs[inp.id]){a=parseD(desc.get.call(inp)); b=parseD(($(pairs[inp.id])||{}).value);}
+        else if(back[inp.id]){a=parseD(($(back[inp.id])||{}).value); b=parseD(desc.get.call(inp));}
+        return [a,b];}
+      function draw(){
+        var y=view.getFullYear(), m=view.getMonth(), first=new Date(y,m,1), start=new Date(y,m,1-((first.getDay()+6)%7));
+        var sel=parseD(desc.get.call(inp)), today=new Date(); today.setHours(0,0,0,0); var re=rangeEnds();
+        var prevOk=!lim("min")||new Date(y,m,0)>=lim("min"), nextOk=!lim("max")||new Date(y,m+1,1)<=lim("max");
+        var h='<div class="xdate-head"><button type="button" class="xdate-nav" data-nav="-1" aria-label="Previous month"'+(prevOk?"":" disabled")+'><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>'+
+          '<div class="xdate-title" aria-live="polite">'+MON[m]+" "+y+'</div>'+
+          '<button type="button" class="xdate-nav" data-nav="1" aria-label="Next month"'+(nextOk?"":" disabled")+'><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>'+
+          '<table class="xdate-grid" role="grid"><thead><tr>'+DOW.map(function(d,i){return '<th scope="col" abbr="'+DOWL[i]+'">'+d+'</th>';}).join("")+'</tr></thead><tbody>';
+        var weeks=Math.ceil(((first.getDay()+6)%7+new Date(y,m+1,0).getDate())/7);
+        for(var w=0;w<weeks;w++){h+="<tr>";
+          for(var i=0;i<7;i++){var d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+w*7+i), v=iso(d), c=["xd"];
+            if(d.getMonth()!==m) c.push("out"); if(!ok(d)) c.push("dis"); if(+d===+today) c.push("today");
+            if(sel&&+d===+sel) c.push("sel");
+            if(re[0]&&re[1]&&d>re[0]&&d<re[1]) c.push("inr"); if(re[0]&&+d===+re[0]) c.push("rs"); if(re[1]&&+d===+re[1]) c.push("re");
+            var foc=focusD&&+d===+focusD;
+            if(d.getMonth()!==m){h+='<td></td>'; continue;}
+            h+='<td role="gridcell"'+(sel&&+d===+sel?' aria-selected="true"':'')+'><button type="button" class="'+c.join(" ")+'" data-d="'+v+'" tabindex="'+(foc?0:-1)+'"'+
+              (ok(d)?"":' aria-disabled="true"')+' aria-label="'+DOWL[(d.getDay()+6)%7]+" "+nice(d)+'">'+d.getDate()+'</button></td>';}
+          h+="</tr>";}
+        h+='</tbody></table><div class="xdate-foot"><button type="button" class="xdate-link" data-act="clear">Clear</button><button type="button" class="xdate-link" data-act="today">Today</button></div>';
+        pop.innerHTML=h;
+      }
+      function focusDay(){var b=pop.querySelector('button[data-d="'+iso(focusD)+'"]'); if(b) b.focus();}
+      function open(){
+        if(openOne&&openOne!==close) openOne();
+        var sel=parseD(desc.get.call(inp)), mn=lim("min"), t=new Date(); t.setHours(0,0,0,0);
+        focusD=sel||(mn&&mn>t?mn:t); if(!ok(focusD)&&mn) focusD=mn; view=new Date(focusD.getFullYear(),focusD.getMonth(),1);
+        draw(); pop.style.left="0px"; pop.hidden=false; wrap.classList.add("open"); btn.setAttribute("aria-expanded","true");
+        /* keep the calendar inside the screen (16px gutter) on narrow phones */
+        var vw=document.documentElement.clientWidth, pr=pop.getBoundingClientRect(), sh=0;
+        if(pr.right>vw-16) sh=vw-16-pr.right; if(pr.left+sh<16) sh=16-pr.left; pop.style.left=sh+"px";
+        var r=pop.getBoundingClientRect(); wrap.classList.toggle("up",r.bottom>innerHeight-8&&r.top>r.height+80);
+        openOne=close; focusDay();
+      }
+      function close(refocus){pop.hidden=true; wrap.classList.remove("open","up"); btn.setAttribute("aria-expanded","false"); if(openOne===close) openOne=null; if(refocus) btn.focus();}
+      function pick(v){inp.value=v; inp.dispatchEvent(new Event("input",{bubbles:true})); inp.dispatchEvent(new Event("change",{bubbles:true})); close(true);}
+      btn.addEventListener("click",function(){pop.hidden?open():close(true);});
+      btn.addEventListener("keydown",function(e){if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault(); open();}});
+      pop.addEventListener("click",function(e){
+        var n=e.target.closest("[data-nav]"), d=e.target.closest("[data-d]"), a=e.target.closest("[data-act]");
+        if(n&&!n.disabled){view=new Date(view.getFullYear(),view.getMonth()+(+n.getAttribute("data-nav")),1); focusD=new Date(view); if(!ok(focusD)&&lim("min")) focusD=lim("min"); draw(); pop.querySelector('[data-nav="'+n.getAttribute("data-nav")+'"]').focus();}
+        else if(d&&!d.classList.contains("dis")) pick(d.getAttribute("data-d"));
+        else if(a){if(a.getAttribute("data-act")==="clear") pick(""); else{var t=new Date(); t.setHours(0,0,0,0); if(ok(t)) pick(iso(t)); else{focusD=lim("min")||t; view=new Date(focusD.getFullYear(),focusD.getMonth(),1); draw(); focusDay();}}}
+      });
+      pop.addEventListener("keydown",function(e){
+        if(e.key==="Escape"){e.preventDefault(); close(true); return;}
+        if(e.key==="Tab"){var f=[].slice.call(pop.querySelectorAll("button:not([disabled])")).filter(function(b){return b.tabIndex!==-1||!b.hasAttribute("data-d");});
+          var i=f.indexOf(document.activeElement); if(e.shiftKey&&i<=0){e.preventDefault(); f[f.length-1].focus();} else if(!e.shiftKey&&i===f.length-1){e.preventDefault(); f[0].focus();} return;}
+        if(!e.target.hasAttribute("data-d")) return;
+        var step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7}[e.key], nd=null;
+        if(step) nd=new Date(focusD.getFullYear(),focusD.getMonth(),focusD.getDate()+step);
+        else if(e.key==="PageUp"||e.key==="PageDown") nd=new Date(focusD.getFullYear(),focusD.getMonth()+(e.key==="PageUp"?-1:1),focusD.getDate());
+        else if(e.key==="Home") nd=new Date(focusD.getFullYear(),focusD.getMonth(),focusD.getDate()-((focusD.getDay()+6)%7));
+        else if(e.key==="End") nd=new Date(focusD.getFullYear(),focusD.getMonth(),focusD.getDate()+6-((focusD.getDay()+6)%7));
+        else if(e.key==="Enter"||e.key===" "){e.preventDefault(); if(ok(focusD)) pick(iso(focusD)); return;}
+        if(nd){e.preventDefault(); focusD=nd; if(nd.getMonth()!==view.getMonth()||nd.getFullYear()!==view.getFullYear()) view=new Date(nd.getFullYear(),nd.getMonth(),1); draw(); focusDay();}
+      });
+      document.addEventListener("mousedown",function(e){if(!pop.hidden&&!wrap.contains(e.target)) close(false);});
+      label();
+    });
+  }
+
   function enhanceSelects(){
     document.querySelectorAll("select:not([data-x])").forEach(function(sel,k){
       sel.setAttribute("data-x","1");
@@ -489,7 +589,7 @@
   }
 
   document.addEventListener("DOMContentLoaded",function(){
-    enhanceSelects(); apply(); counter("resTrack","resCount"); counter("resTrack2","resCount2"); counter("facTrack","facCount");
+    enhanceSelects(); enhanceDates(); apply(); counter("resTrack","resCount"); counter("resTrack2","resCount2"); counter("facTrack","facCount");
     galA11y(); resGallery(); calc(); leadForm(); booking(); mbar(); mapFallback();
   });
 })();
