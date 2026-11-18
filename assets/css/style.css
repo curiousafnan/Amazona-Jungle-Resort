@@ -582,6 +582,13 @@ footer li a:hover{color:var(--ivory)}
 .fmsg:empty{display:none}
 .field .fhint{font-size:12.5px;line-height:1.6;color:var(--muted);margin-top:6px}
 .field .fhint:empty{display:none}
+/* live availability under the dates (step 2): no red, ever */
+.avail{font-size:13.5px;line-height:1.55;margin:-4px 0 18px;padding:10px 14px;border-left:3px solid var(--line,#d9d6cc);background:var(--off,#F8F7F3);color:var(--ink)}
+.avail:empty{display:none}
+.avail.wait{color:var(--muted)}
+.avail.ok{border-left-color:var(--green,#2F3B31);color:var(--green,#2F3B31);font-weight:500}
+.avail.no{border-left-color:var(--inkd,#1B1813)}
+.avail a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 
 /* ---- F6 · visible focus everywhere ---- */
 :focus-visible{outline:2px solid var(--green);outline-offset:3px}

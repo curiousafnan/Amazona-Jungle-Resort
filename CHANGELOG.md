@@ -2,6 +2,11 @@
 
 ## November 2026
 
+### Live availability on the booking page (18 November)
+- Step 2 now checks the chosen residence, dates and guests with the booking system as soon as they're set: "Available for these dates" (with the number of residences for a group), or the reason it isn't and a WhatsApp link. Nothing is held until payment. Quick changes wait a moment and repeat answers aren't asked again.
+- "Continue to payment" stays on step 2 when the dates are known to be taken.
+- When the booking system can't price the stay, the payment button stays off with "Try again" and a WhatsApp link. It no longer says "you can still continue".
+
 ### Two-step staff sign-in and lighter page loads (18 November)
 - Booking admin: the owner and staff who can move money (refunds, commission payouts, fee settings) now enter a code from their email after the password. "Trust this browser" skips it for 30 days.
 - Prices and exchange rates are now kept by the visitor's browser for 5 and 15 minutes, so browsing the site costs about 2 server requests per visit instead of 2 per page.

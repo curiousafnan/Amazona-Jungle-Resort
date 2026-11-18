@@ -434,6 +434,7 @@
 
     /* ----- summary ----- */
     function summary(){
+      liveCheck();
       var nn=nights(), ok=nn>0, nr=conv(state.price), base=nr*Math.max(nn,0), pct=ok?tier(nn):0,
           g=+gs.value||0, u=unitsFor(g,state.max||1);
       base=base*u; var disc=Math.round(base*pct/100), tot=base-disc;
@@ -488,6 +489,41 @@
       var lb=$("bkLonger"); if(lb) lb.addEventListener("click",function(){
         var a=parse(ci.value); if(!a) return; co.value=ymd(addDays(a,longer.nights)); co.dispatchEvent(new Event("input")); summary(); quote();});
     }
+    /* step 2: as soon as residence, dates and guests are set, ask the API whether they're free (nothing is held).
+       One answer per combination is kept, and typing pauses briefly before asking, so Guesty isn't asked twice. */
+    function hx(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+    function waHere(label){return '<a href="'+waLink(["Hi Amazona, I'd like to book "+state.name+".","Dates: "+ci.value+" to "+co.value+", "+gs.value+" guests."]).replace(/"/g,"&quot;")+'" target="_blank" rel="noopener">'+label+'</a>';}
+    var availT=null, avail=null;
+    function stayKey(){return [state.res,ci.value,co.value,gs.value].join("|");}
+    function availShow(cls,html){var m=$("availMsg"); if(!m) return; m.className="avail"+(cls?" "+cls:""); m.innerHTML=html||"";}
+    function availRender(r){
+      if(r.ok===true){var u=+r.j.units||1; availShow("ok","&#10003; Available for these dates"+(u>1?", as "+u+" "+hx(state.name)+" residences":"")+".");}
+      else if(r.ok===false) availShow("no",hx(r.j.message||"That residence isn't available for those dates.")+" "+waHere("Ask us on WhatsApp")+".");
+      else if(r.stop) availShow("no",hx(r.msg)+" "+waHere(/whatsapp/i.test(r.msg)?"Open WhatsApp":"Message us on WhatsApp")+".");
+      else availShow("",""); /* couldn't ask just now: checked again before payment */
+    }
+    function liveCheck(){
+      clearTimeout(availT);
+      if(!API||!state.res){availShow("",""); return;}
+      var a=parse(ci.value), b=parse(co.value);
+      if(!a||!b||b<=a||a<firstIn()){availShow("",""); return;} /* validate() explains bad dates */
+      var key=stayKey();
+      if(avail&&avail.key===key){availRender(avail); return;}
+      availShow("wait","Checking these dates&hellip;");
+      availT=setTimeout(function(){
+        amzApi("POST","/api/availability",{residence:state.res,check_in:ci.value,check_out:co.value,guests:+gs.value}).then(function(j){
+          if(key!==stayKey()) return;
+          avail={key:key,ok:j.available!==false,j:j}; availRender(avail);
+        }).catch(function(e){
+          if(key!==stayKey()) return;
+          var j=(e&&e.body)||{};
+          /* not set up, or a rule (too many guests): no point going on. A network blip: say nothing, step 3 asks again. */
+          avail={key:key,ok:null,stop:!!(j.message&&e.status!==429&&e.status<500||e.status===503),msg:j.message||""};
+          if(!avail.stop) avail=null;
+          availRender(avail||{ok:null});
+        });
+      },450);
+    }
     /* step 3: the API checks the dates in Guesty and gives the exact price before anything is held */
     function quote(){
       var want=stay(), btn=$("bkConfirm"), pm=$("payMsg"); pm.textContent="";
@@ -499,8 +535,12 @@
         /* a code that didn't work must not be sent with the booking (it would be refused): the guest fixes or clears it first */
         if(j.coupon&&j.coupon.ok===false){btn.disabled=true; markErr("cc",j.coupon.message);}
       }).catch(function(e){
-        $("payQuote").innerHTML=""; btn.disabled=false;
-        pm.innerHTML=(e.message?e.message.replace(/</g,"&lt;")+" ":"")+'You can still continue, or <a href="'+waLink(["Hi Amazona, I'd like to book "+state.name+".","Dates: "+ci.value+" to "+co.value+", "+gs.value+" guests."]).replace(/"/g,"&quot;")+'" target="_blank" rel="noopener">book with us on WhatsApp</a>.';
+        /* Without a price from the server, paying would fail too: the button stays off. */
+        $("payQuote").innerHTML=""; btn.disabled=true;
+        var j=(e&&e.body)||{};
+        if(e&&e.status===503){var m3=j.message||"Online booking is temporarily unavailable."; pm.innerHTML=hx(m3)+" "+waHere(/whatsapp/i.test(m3)?"Open WhatsApp":"Message us on WhatsApp")+"."; return;}
+        pm.innerHTML=hx(j.message||"We couldn't check availability just now.")+' <button type="button" class="linkbtn" id="bkRetry">Try again</button> or '+waHere("book with us on WhatsApp")+".";
+        var rb=$("bkRetry"); if(rb) rb.addEventListener("click",function(){pm.textContent=""; quote();});
       });
     }
     function payNow(){
@@ -532,7 +572,11 @@
     window.bkStep=function(n){
       if(n>=2&&!state.res){step(1,{focus:true});return;}
       if(n>=3&&!validate()){if(cur!==2){summary();step(2,{focus:false});validate();}return;}
-      if(API&&n===3){summary(); step(3,{focus:true}); quote(); return;}
+      if(API&&n===3){
+        if(avail&&avail.key===stayKey()&&(avail.ok===false||avail.stop)){
+          summary(); step(2,{focus:false}); $("dateMsg").textContent=avail.ok===false?(avail.j.message||""):avail.msg;
+          var am=$("availMsg"); if(am) am.scrollIntoView({block:"center"}); return;}
+        summary(); step(3,{focus:true}); quote(); return;}
       if(API&&n===4){payNow(); return;}
       if(n===4&&!sent){
         if(sending) return;
