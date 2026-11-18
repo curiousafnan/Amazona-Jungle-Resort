@@ -907,3 +907,38 @@ footer h2.fh,.cblock h2.ch{font-family:inherit;line-height:inherit}
 .xdate-link{background:none;border:0;cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);padding:6px 4px}
 .xdate-link:hover{text-decoration:underline;text-underline-offset:3px}
 .lb .lbp,.lb .lbn{top:50%;transform:translateY(-50%)}.lb .lbp{left:18px;right:auto}.lb .lbn{right:18px}.lb .lbc{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:rgba(241,240,235,.7);font-size:11px;letter-spacing:.2em}
+
+/* booking API: payment step (card only, price from the API) */
+.paycard{padding:20px 22px}
+.paycard .pq h3{font-size:22px;margin:0 0 6px}
+.paycard .pq .srow{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid rgba(35,32,26,.1);font-size:14px}
+.paycard .pq .srow.disc{color:var(--green)}
+.paycard .pq .srow.total{font-weight:500;border-bottom:0;font-size:15px}
+.paycard .pq:empty{display:none}
+.paycard .pwait{font-size:14px;color:var(--muted);margin:0}
+.paycard .pnote{font-size:13px;line-height:1.65;color:var(--muted);margin:14px 0 0}
+.paycard .pq:empty+.pnote{margin-top:0}
+.paycard .pnote b{color:var(--ink);font-weight:500}
+#bp3 .chk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.55;color:rgba(35,32,26,.8);margin:0 0 14px;cursor:pointer}
+#bp3 .chk input{width:18px;height:18px;margin-top:2px;accent-color:var(--green);flex:none}
+#bp3 .chk a{color:var(--green);text-decoration:underline;text-underline-offset:3px}
+#bp3 .hp{position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden}
+#bp3 button[disabled]{opacity:.7;cursor:progress}
+
+/* booking-status.html: where DOKU sends the guest back */
+.bkst{min-height:62vh}
+.bkst .st-sum{max-width:520px;margin:28px auto 0;text-align:left;background:var(--off);border:1px solid rgba(35,32,26,.12);border-radius:6px;padding:8px 22px}
+.bkst .st-sum .srow{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(35,32,26,.1);font-size:14px}
+.bkst .st-sum .srow span:first-child{color:var(--muted)}
+.bkst .st-sum .srow.total{border-bottom:0;font-weight:500}
+.bkst .st-note{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.bkst .st-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:28px}
+.bkst .fmsg{margin-top:14px}
+.bkst-ns{max-width:560px;margin:0 auto 60px;text-align:center;font-size:14px}
+.phero.bkst{padding-left:20px;padding-right:20px}
+.paycard .bk-longer{margin:12px 0 2px;padding:12px 14px;border:1px solid rgba(47,59,49,.25);border-radius:6px;background:rgba(47,59,49,.05)}
+.paycard .bk-longer p{font-size:13.5px;line-height:1.55;margin:0 0 10px;color:var(--ink)}
+.paycard .bk-longer .btn{padding:10px 16px;font-size:11px}
+.paycard .pcode{font-size:13.5px;line-height:1.55;margin:12px 0 0;color:var(--ink)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--green);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#cc{text-transform:uppercase;letter-spacing:.06em}

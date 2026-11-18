@@ -1,0 +1,36 @@
+# Amazona Jungle Resort website: security settings for Hostinger (LiteSpeed / Apache).
+
+# No folder listings.
+Options -Indexes
+
+# Never serve the repository, dotfiles, notes or server-only settings.
+# (If the site is deployed from Git, .git sits in this folder; it holds the full history.)
+RedirectMatch 404 /\.(?!well-known)
+<FilesMatch "\.(md|log|sh|sql|bak|dist|example|lock|json)$">
+    Require all denied
+</FilesMatch>
+<Files "site.webmanifest">
+    Require all granted
+</Files>
+<FilesMatch "^config(\.sample)?\.php$">
+    Require all denied
+</FilesMatch>
+
+# Always HTTPS.
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    # The booking result page carries a private link: never pass it on, never cache it.
+    <FilesMatch "^booking-status\.html$">
+        Header always set Referrer-Policy "no-referrer"
+        Header always set Cache-Control "no-store"
+    </FilesMatch>
+</IfModule>
