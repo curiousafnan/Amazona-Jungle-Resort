@@ -2,6 +2,9 @@
 
 ## November 2026
 
+### Support email (18 November)
+- booking@amazonajungleresort.com added as the support and reservations email: Contact page, footer on every page, next to the Register Interest form, Privacy Policy, Terms, resort details for Google, and the fallback message when a form fails to send.
+
 ### Live availability on the booking page (18 November)
 - Step 2 now checks the chosen residence, dates and guests with the booking system as soon as they're set: "Available for these dates" (with the number of residences for a group), or the reason it isn't and a WhatsApp link. Nothing is held until payment. Quick changes wait a moment and repeat answers aren't asked again.
 - "Continue to payment" stays on step 2 when the dates are known to be taken.

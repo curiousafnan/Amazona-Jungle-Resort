@@ -30,7 +30,8 @@
   function waLink(lines){var w=document.body.getAttribute("data-wa")||"https://wa.me/4593806513"; return w+"?text="+encodeURIComponent(lines.filter(Boolean).join("\n"));}
   function failMsg(el,lines,e){
     var why=e&&e.status===429?"You&rsquo;ve sent a few requests already. Please wait a few minutes and try again, or ":"Sorry, that didn&rsquo;t go through. Please try again, or ";
-    el.innerHTML=why+'<a href="'+waLink(lines).replace(/"/g,"&quot;")+'" target="_blank" rel="noopener">send it to us on WhatsApp</a>.';
+    var em=document.body.getAttribute("data-email")||"", ml=em?"mailto:"+em+"?subject="+encodeURIComponent("Website enquiry")+"&body="+encodeURIComponent(lines.filter(Boolean).join("\n")):"";
+    el.innerHTML=why+'<a href="'+waLink(lines).replace(/"/g,"&quot;")+'" target="_blank" rel="noopener">send it to us on WhatsApp</a>'+(em?' or email <a href="'+ml.replace(/"/g,"&quot;")+'">'+em+'</a>':'')+'.';
   }
 
   /* ---------- lazy photos: [data-bg] gets its background when it comes within ~800px of the viewport ---------- */
