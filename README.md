@@ -120,6 +120,8 @@ The old "reservations closed" switch (`res-closed`, `.when-closed`) is still in 
 
 ## Brand rules
 
+- Logos (client artwork, Nov 2026): `assets/img/logo-green.svg` in the header, `assets/img/logo-cream.svg` in the footer and the dark menu. The favicon and app icons use the "A" from the logo in cream on green. The share image `assets/img/og.jpg` is the cream logo on the palm photo.
+
 - Colours: Ivory `#F1F0EB`, Ink `#23201A`, Ink Deep `#1B1813`, Old Money Green `#2F3B31`, Offwhite `#F8F7F3`. Do not use Clay `#8B7360`.
 - Fonts: Cormorant Garamond (headings), Poppins (text), EB Garamond (ritual lines).
 - Facility names, spelled exactly: Aluna Garden, Lago, ĀYLA, Prána, Embér, Raíz, Tierra Spa.

@@ -2,6 +2,11 @@
 
 ## November 2026
 
+### Logos (19 November)
+- Client logo artwork in place: green logo in the header on every page, cream logo in the footer and the pop-up menu.
+- New favicon and app icons from the logo's "A" (cream on brand green), and a new share image (cream logo on the palm photo) for WhatsApp, Facebook and other link previews.
+- Stylesheet version bumped so visitors get the new styles.
+
 ### Support email (18 November)
 - booking@amazonajungleresort.com added as the support and reservations email: Contact page, footer on every page, next to the Register Interest form, Privacy Policy, Terms, resort details for Google, and the fallback message when a form fails to send.
 

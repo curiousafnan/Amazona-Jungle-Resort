@@ -949,3 +949,11 @@ footer h2.fh,.cblock h2.ch{font-family:inherit;line-height:inherit}
 .paycard .pcode{font-size:13.5px;line-height:1.55;margin:12px 0 0;color:var(--ink)}
 .linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--green);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 #cc{text-transform:uppercase;letter-spacing:.06em}
+
+/* logo artwork (client SVGs, Nov 2026): green in the header, cream on dark */
+.brand img.logo{height:40px;width:auto;display:block;margin:0 auto}
+.menutop img.logo{height:34px;width:auto;display:block;justify-self:center}
+.fbrand .flogo{width:230px;height:auto;display:block;margin-bottom:4px}
+@media(max-width:900px){.brand img.logo{height:32px}}
+@media(max-width:600px){.menutop img.logo{height:28px}}
+@media(max-width:380px){.brand img.logo{height:27px}}
